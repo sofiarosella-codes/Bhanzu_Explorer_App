@@ -1,0 +1,12 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const read=name=>fs.readFileSync(path.join(__dirname,name),'utf8');
+let html=read('index.html');
+html=html.replace('<link rel="stylesheet" href="styles.css">',()=>'<style>\n'+read('styles.css')+'\n</style>');
+html=html.replace('<link rel="stylesheet" href="games.css">',()=>'<style>\n'+read('games.css')+'\n</style>');
+html=html.replace('<link rel="stylesheet" href="studio.css">',()=>'<style>\n'+read('studio.css')+'\n</style>');
+html=html.replace('<script src="engine.js" defer></script><script src="curriculum.js" defer></script><script src="studio.js" defer></script><script src="app.js" defer></script>','');
+html=html.replace('href="index.html"','href="#"');
+html=html.replace('</body>',()=>'<script>\n'+read('engine.js')+'\n'+read('curriculum.js')+'\n'+read('studio.js')+'\n'+read('app.js')+'\n</script>\n</body>');
+fs.writeFileSync(path.join(__dirname,'bhanzu-explorer.html'),html);
+console.log('Single-file app created: bhanzu-explorer.html');

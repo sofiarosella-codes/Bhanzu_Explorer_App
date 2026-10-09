@@ -1,0 +1,7 @@
+Continue working on this existing Bhanzu Math Explorer Club app. Read README.md and inspect index.html, app.js, curriculum.js, studio.js and the stylesheets. The current app uses Grade 1–12 selection and 15 self-guided creative/play activities with grade-dependent math and logic challenges.
+
+Preserve the fixes: all activities are available before the saved class date; an explicit Save artwork to my passport button stores and displays the actual artwork; re-saving replaces the artwork without duplicating completion; draft pixels persist; grade switching preserves separate work; existing profiles migrate without losing their completion count. Completed games save stamps automatically. Do not reintroduce preview mode that blocks passport saving.
+
+Keep painting, symmetry, memory, rhythm, sequences, counter splits, shopping, sorting, equation balance, function experiments, route planning, postcards, cipher entry and packing activities. Maintain touch, mouse and keyboard controls. Keep the first-class cutoff and allow viewing the passport and artwork afterward. Explain that these are grade-banded prototype activities, not a verified official curriculum.
+
+Make requested changes in the existing source, run meaningful checks, and regenerate bhanzu-explorer.html with node build-bundle.cjs. Keep the app runnable offline without a build step for the user. Do not add paid APIs, live support, messaging, accounts, backend services or deployment unless requested. Never put credentials in browser code.

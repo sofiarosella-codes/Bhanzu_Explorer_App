@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#34175a">
+  <title>Bhanzu · Math Explorer Club</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="games.css">
+  <link rel="stylesheet" href="studio.css">
+  <script src="engine.js" defer></script><script src="curriculum.js" defer></script><script src="studio.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="index.html">Bhanzu <span>Math Explorer Club</span></a><span class="prototype">Self-guided starter app</span></header>
+  <main id="app"></main>
+  <footer>Your progress stays in this browser. This demo does not send messages or connect to your Bhanzu account.</footer>
+  <dialog id="settings"><form id="settings-form"><h2>Your adventure details</h2><p>Use the class date confirmed by your onboarding team.</p><label>Explorer nickname <input name="nickname" maxlength="30" autocomplete="off"></label><label>Onboarding date <input name="onboard" type="date" required></label><label>First class date <input name="start" type="date" required></label><label>Your grade <select name="grade" required></select></label><p class="error" id="settings-error" role="alert"></p><div class="actions"><button class="primary" type="submit">Save details</button><button type="button" id="close-settings">Cancel</button></div><hr><button class="danger" type="button" id="reset">Start over on this device</button></form></dialog>
+  <noscript>Please enable JavaScript to use the puzzles and save your progress.</noscript>
+</body>
+</html>

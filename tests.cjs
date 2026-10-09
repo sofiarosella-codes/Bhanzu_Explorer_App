@@ -1,0 +1,11 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const E=require('./engine.js');
+const p={nickname:'Explorer',onboard:'2026-10-01',start:'2026-10-31',level:'starter',avatar:'space'};
+test('date validation rejects impossible dates and handles leap days',()=>{assert.equal(E.validDate('2026-02-29'),false);assert.equal(E.validDate('2028-02-29'),true);assert.equal(E.validDate('2026-13-01'),false);assert.equal(E.validDate('tomorrow'),false);});
+test('calendar arithmetic works across months and DST dates',()=>{assert.equal(E.addDays('2026-10-31',1),'2026-11-01');assert.equal(E.dayNumber('2026-11-02')-E.dayNumber('2026-10-31'),2);assert.equal(E.addDays('2028-02-28',1),'2028-02-29');});
+test('missions unlock on their date and stop on class date',()=>{const m=E.missions.find(x=>x.id==='rocket');assert.equal(E.available(m,p,'2026-10-03'),false);assert.equal(E.available(m,p,'2026-10-04'),true);assert.equal(E.available(m,p,'2026-10-31'),false);assert.equal(E.available(E.missions[0],p,'2026-09-30'),false);});
+test('boarding pass follows class date for a shorter or longer wait',()=>{const m=E.missions.find(x=>x.final);assert.equal(E.unlockOffset(m,{...p,start:'2026-10-10'}),7);assert.equal(E.available(m,{...p,start:'2026-10-10'},'2026-10-08'),true);assert.equal(E.unlockOffset(m,{...p,start:'2026-11-15'}),43);});
+test('class starts today even if page was not previously visited',()=>{assert.equal(E.status(p,'2026-10-31').started,true);assert.equal(E.status(p,'2026-11-01').started,true);assert.equal(E.status(p,'2026-10-30').left,1);});
+test('every quiz has a unique valid answer in each level',()=>{assert.equal(E.missions.length,15);assert.equal(new Set(E.missions.map(m=>m.id)).size,15);for(const m of E.missions.filter(m=>m.kind==='quiz'))for(const level of ['starter','challenger']){const q=m[level];assert.equal(q.options.filter(x=>x===q.answer).length,1);assert.ok(q.hint&&q.explanation);}});
+test('profile validation protects stored data and date ordering',()=>{assert.equal(E.validateProfile(p),true);assert.equal(E.validateProfile({...p,start:'2026-09-30'}),false);assert.equal(E.validateProfile({...p,avatar:'invalid'}),false);assert.equal(E.validateProfile(null),false);});
