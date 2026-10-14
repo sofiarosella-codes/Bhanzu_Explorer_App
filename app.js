@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const E = window.Explorer, C = window.ExplorerCurriculum, S = window.ExplorerStudio;
+  const G = window.ExplorerEngagement, L = window.ExplorerLearning;
   const KEY = 'bhanzu-explorer-v1', START_KEY = `${KEY}:first-open`;
   const app = document.getElementById('app');
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -36,7 +37,7 @@
   const theme = () => themes[state.profile?.avatar || draftTheme] || themes.detective;
   const missions = () => {
     const g = state.profile.grade;
-    if (!cache.has(g)) cache.set(g, C.activities(g));
+    if (!cache.has(g)) cache.set(g, L.activities(g, C.activities(g), state));
     return cache.get(g);
   };
   const gradeKey = () => String(state.profile.grade);
@@ -111,7 +112,7 @@
   }
   function passport() {
     const count = done().length, art = gallery(), previous = allProgress().filter(id => E.missions.some(m => m.id === id)).length;
-    return `<section class="panel passport"><div class="eyebrow">${theme().collection}</div><h3>${theme().icon} ${esc(state.profile.nickname)}</h3><p class="small">Grade ${state.profile.grade} passport</p>${art.length ? `<details class="gallery-details"><summary>${art.length} saved creations · view gallery</summary><div class="art-gallery">${art.map(x => `<figure><figcaption>${esc(x.title)}</figcaption>${S.artwork(x.a, true)}<button class="export-art" data-export="${esc(x.id)}">Download ${x.a.type === 'paint' ? 'artwork' : 'postcard'}</button></figure>`).join('')}</div></details>` : '<div class="empty-art">🎨<p>Save artwork to add it to your gallery.</p></div>'}<div class="stamps">${[1,2,3,4].map(w => `<span class="stamp ${missions().some(m => m.week === w && done().includes(m.id)) ? 'earned' : ''}" aria-label="Milestone ${w}">${['🌱','🧩','💡','🏆'][w - 1]}</span>`).join('')}</div><div class="progress" role="progressbar" aria-label="Completed activities" aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="150"><span style="width:${count / 150 * 100}%"></span></div><p>${count} of 150 activities saved</p>${previous ? `<p class="small">Earlier collection: ${previous} completed activities preserved.</p>` : ''}<p class="small muted">Each grade keeps its own progress. Changing worlds never resets your work.</p><button id="print-passport">Print passport</button></section>`;
+    return `<section class="panel passport"><div class="eyebrow">${theme().collection}</div><h3>${theme().icon} ${esc(state.profile.nickname)}</h3><p class="small">Grade ${state.profile.grade} passport</p>${art.length ? `<details class="gallery-details"><summary>${art.length} saved creations · view gallery</summary><div class="art-gallery">${art.map(x => `<figure><figcaption>${esc(x.title)}</figcaption>${S.artwork(x.a, true)}<button class="export-art" data-export="${esc(x.id)}">Download ${x.a.type === 'paint' ? 'artwork' : 'postcard'}</button></figure>`).join('')}</div></details>` : '<div class="empty-art">🎨<p>Save artwork to add it to your gallery.</p></div>'}<div class="stamps">${[1,2,3,4].map(w => `<span class="stamp ${missions().some(m => m.week === w && done().includes(m.id)) ? 'earned' : ''}" aria-label="Milestone ${w}">${['🌱','🧩','💡','🏆'][w - 1]}</span>`).join('')}</div><div class="progress" role="progressbar" aria-label="Completed activities" aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="150"><span style="width:${count / 150 * 100}%"></span></div><p>${count} of 150 activities saved</p>${previous ? `<p class="small">Earlier collection: ${previous} completed activities preserved.</p>` : ''}<p class="small muted">Each grade keeps its own progress. Changing worlds never resets your work.</p><button id="print-passport">Print passport</button>${L.journalHTML(state.profile.grade)}</section>`;
   }
   function bindPassport() {
     document.getElementById('print-passport').onclick = () => {
@@ -145,12 +146,13 @@
   }
   function details() {
     const m = missions().find(x => x.id === selected), list = dayMissions(selectedDay), index = list.findIndex(x => x.id === selected);
-    return `<section class="panel detail" id="mission-detail"><div class="toolbar"><span class="pill">Grade ${state.profile.grade} · Day ${selectedDay} · ${index + 1}/5</span><span id="completion-chip" class="small">${done().includes(m.id) ? '✓ Saved to passport' : 'Take your time'}</span></div><h2>${m.icon} ${esc(m.title)}</h2><p class="question">${esc(m.prompt)}</p><div class="game" id="studio"><div class="game-label">${theme().noun.toUpperCase()} · PLAY SPACE</div><div class="studio-board"></div><div class="game-status" role="status">Explore at your own pace.</div></div><div class="actions"><button id="hint">Show a hint</button><button id="previous" ${index === 0 ? 'disabled' : ''}>← Previous</button><button id="next" class="primary" ${index === 4 ? 'disabled' : ''}>Next →</button></div><p class="benefit"><strong>What this practises:</strong> ${esc(m.benefit)}</p></section>`;
+    return `<section class="panel detail" id="mission-detail"><div class="toolbar"><span class="pill">Grade ${state.profile.grade} · Day ${selectedDay} · ${index + 1}/5</span><span id="completion-chip" class="small">${done().includes(m.id) ? '✓ Saved to passport' : 'Take your time'}</span></div><h2>${m.icon} ${esc(m.title)}</h2><p class="today-idea"><strong>Today’s idea:</strong> ${esc(m.idea || L.title(state.profile.grade, selectedDay))}</p><p class="question">${esc(m.prompt)}</p><div class="game" id="studio"><div class="game-label">${theme().noun.toUpperCase()} · PLAY SPACE</div><div class="studio-board"></div><div class="game-status" role="status">Explore at your own pace.</div></div><div class="actions"><button id="hint">Show a hint</button><button id="previous" ${index === 0 ? 'disabled' : ''}>← Previous</button><button id="next" ${index === 4 ? 'disabled' : ''}>Next →</button></div><p class="benefit"><strong>What this practises:</strong> ${esc(m.benefit)}</p></section>`;
   }
   function record(id, artifact) {
     const m = missions().find(x => x.id === id);
     if (!canPlay(m)) { render(); return; }
-    if (!done().includes(id)) state.progress[gradeKey()] = [...allProgress(), id];
+    const isNew = !done().includes(id);
+    if (isNew) state.progress[gradeKey()] = [...allProgress(), id];
     if (artifact) state.artifacts[draftKey(id)] = structuredClone(artifact);
     save(); const galleryWasOpen = document.querySelector('.gallery-details')?.open;
     document.getElementById('passport-slot').innerHTML = passport();
@@ -162,13 +164,18 @@
     dayButton.querySelector('span').textContent = `${count}/5 saved`;
     dayButton.querySelector('strong').textContent = `${count === 5 ? '✓' : theme().icon} Day ${m.day}`;
     dayButton.setAttribute('aria-label', `Day ${m.day}. ${count}/5 saved`);
-    document.querySelector('.hero .float.two').textContent = `${theme().icon} ${dayCount(currentDay())} / 5 today`;
-    document.querySelector(`#mission-picker option[value="${id}"]`).textContent = `✓ ${m.title}`;
+    const heroCount=document.querySelector('.hero .float.two'); if(heroCount) heroCount.textContent = `${theme().icon} ${dayCount(currentDay())} / 5 today`;
+    const tile=document.querySelector(`[data-mission="${id}"]`); if(tile){tile.querySelector("span").textContent="✓";tile.querySelector("small").textContent="Saved · replay any time";}
+    G.passportUpdated();
+    G.completed(m, isNew);
+    L.updateJournal();
   }
   function bindDetail() {
     const m = missions().find(x => x.id === selected); if (!canPlay(m)) return;
+    G.begin(m);
     S.mount(document.getElementById('studio'), m, state.drafts[draftKey(m.id)], {
       draft: d => { if (canPlay(m)) { state.drafts[draftKey(m.id)] = d; save(); } },
+      feedback: (kind, text) => G.feedback(m, kind, text),
       complete: a => record(m.id, a)
     });
     document.getElementById('hint').onclick = () => { document.querySelector('.game-status').textContent = m.hint; };
@@ -178,7 +185,7 @@
   }
   function select(id) {
     const m = missions().find(x => x.id === id); if (!canPlay(m)) return;
-    selectedDay = m.day; selected = id; render();
+    selectedDay = m.day; selected = id; L.setPlay(state.profile.grade, m.day); render();
     document.getElementById('mission-detail')?.scrollIntoView({ block:'start', behavior:'instant' });
   }
   function selectDay(day) { if (canDay(day)) { selectedDay = day; selected = null; render(); } }
@@ -186,17 +193,18 @@
     if (!canDay(selectedDay)) selectedDay = currentDay();
     const list = dayMissions(selectedDay);
     if (!list.some(m => m.id === selected)) selected = (list.find(m => !done().includes(m.id)) || list[0]).id;
-    app.innerHTML = `<div class="toolbar"><span class="pill" id="daily-progress" role="status">${progressText()}</span><label class="grade-picker">Grade<select id="grade-picker">${options(state.profile.grade)}</select></label><label class="grade-picker">World<select id="theme-picker">${themeOptions()}</select></label><button id="settings-button">Settings</button></div>${hero()}${elapsedDays() >= 30 ? '<p class="banner">All 30 days have opened. Finish any activities you missed.</p>' : ''}<div class="activity-navigation"><div class="toolbar"><label for="mission-picker" id="day-summary">Day ${selectedDay} · ${dayCount(selectedDay)}/5 saved</label><button id="today-button">Go to today</button></div><select id="mission-picker">${list.map(m => `<option value="${m.id}" ${m.id === selected ? 'selected' : ''}>${done().includes(m.id) ? '✓ ' : ''}${esc(m.title)}</option>`).join('')}</select></div><div class="layout"><div>${details()}${calendar()}</div><aside class="side">${sidebar()}</aside></div>`;
-    document.getElementById('mission-picker').onchange = e => select(e.target.value);
+    const p=L.phase(state.profile.grade,selectedDay),todayDone=list.filter(m=>done().includes(m.id)).map(m=>m.id);
+    app.innerHTML = `<header class="journey-header"><div class="journey-top"><span class="pill" id="daily-progress" role="status">${progressText()}</span><details id="journey-menu"><summary>Your settings</summary><div id="journey-controls"><label class="grade-picker">Grade<select id="grade-picker">${options(state.profile.grade)}</select></label><label class="grade-picker">World<select id="theme-picker">${themeOptions()}</select></label><button id="settings-button">Class date & details</button></div></details></div><p class="eyebrow">${theme().icon} Today’s mission · Day ${selectedDay} · Grade ${state.profile.grade}</p><h1>${esc(L.title(state.profile.grade,selectedDay))}</h1><p>Understand the idea. Explore it your way. No race to finish.</p>${L.pathHTML(state.profile.grade,selectedDay,todayDone)}</header><div class="journey-content">${p==='play'?L.playHTML(state.profile.grade,selectedDay,list,todayDone,selected)+details():L.stageHTML(state.profile.grade,selectedDay,todayDone)}<details class="journey-extra" id="journey-progress"><summary><span id="journey-streak-label">Your progress</span> · rewards & extras</summary><div id="journey-extras-slot"></div></details><details class="journey-extra" id="journey-journal"><summary>${theme().collection} · saved work & badges</summary><aside class="side">${sidebar()}</aside></details><details class="journey-extra" id="journey-calendar"><summary>Your 30-day journey</summary><button id="today-button">Go to today</button>${calendar()}</details><p class="small muted journey-demo-note">This is a self-guided demo, not an official Bhanzu curriculum. Celebrate thinking and effort, not speed.</p></div>`;
+    document.querySelectorAll('[data-mission]').forEach(b=>b.onclick=()=>select(b.dataset.mission));
     document.getElementById('today-button').onclick = () => selectDay(currentDay());
     document.getElementById('grade-picker').onchange = e => { adoptGrade(+e.target.value); render(); };
     document.getElementById('theme-picker').onchange = e => { state.profile.avatar = e.target.value; save(); render(); };
     document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => selectDay(+b.dataset.day));
     document.getElementById('settings-button').onclick = openSettings;
-    bindPassport(); bindDetail();
+    bindPassport(); if(p==='play') bindDetail();
     document.querySelectorAll('[data-guide]').forEach(b => b.onclick = () => {
       const m = missions().find(x => x.id === selected);
-      document.getElementById('guide-answer').textContent = b.dataset.guide === 'hint' ? m.hint : b.dataset.guide === 'save' ? 'Games save their stamp when completed. Paintings and postcards have a Save button. Earlier days stay open, and drafts are stored on this device.' : `Your saved class date is ${dateLabel(state.profile.start)}. Use the confirmed time and joining link from Bhanzu.`;
+      document.getElementById('guide-answer').textContent = b.dataset.guide === 'hint' ? (m?.hint || 'Choose an activity, or ask the guide about today’s idea.') : b.dataset.guide === 'save' ? 'Games save their stamp when completed. Paintings and postcards have a Save button. Earlier days stay open, and drafts are stored on this device.' : `Your saved class date is ${dateLabel(state.profile.start)}. Use the confirmed time and joining link from Bhanzu.`;
     });
   }
   function started() {
@@ -209,6 +217,11 @@
     else if (!gradeOK(state.profile.grade)) migrateGrade();
     else if (E.status(state.profile).started) started();
     else journey();
+    G.attach(state.profile && gradeOK(state.profile.grade) ? {
+      profile: state.profile, missions: missions(), done, firstOpen,
+      currentDay: currentDay(), selectedDay, selected, canPlay, select, render, reflect: () => L.go('reflect')
+    } : null);
+    L.bind(state.profile && gradeOK(state.profile.grade) && !E.status(state.profile).started ? {profile:state.profile, selectedDay, selected, canDay, render} : null);
     storageNotice();
   }
   function openSettings() {
@@ -227,6 +240,7 @@
   };
   document.getElementById('reset').onclick = () => {
     if (!confirm('Remove all grades, drafts and artwork from this browser? Your original day-1 date will stay the same.')) return;
+    G.reset(); L.reset(); cache.clear();
     state = { profile:null, done:[], progress:{}, drafts:{}, artifacts:{} };
     selected = null; selectedDay = currentDay(); draftTheme = 'detective'; save();
     document.getElementById('settings').close(); render();
